@@ -60,14 +60,13 @@ model = GaussianProcessRegressor(kernel=kern,  # kernel instance, default=None
                                  copy_X_train=True,  # bool, default=True
                                  random_state=None,  # int or RandomState, default=None
                                  )
-_x = np.array(np.linspace(1, 9, 9))
-k_samples = model.sample_y(_x.reshape(-1, 1), n_samples=5)  # カーネル関数をランダムに5つサンプリングしてくる
 model.fit(train_x, train_y)
 y_pred, y_std = model.predict(x.reshape(-1, 1), return_std=True)
 log_marginal_likelihood = model.log_marginal_likelihood()  # 対数周辺尤度
 params = model.get_params()  # 設定パラメータの取得(辞書)
 scores = model.score(train_x, train_y)  # 決定係数R^2
 # params = model.set_params()  # 設定パラメータの設定(辞書)
+k_samples = model.sample_y(train_x, n_samples=5)  # 事後分布のカーネル関数をランダムに5つサンプリング
 
 X_train = model.X_train_
 y_train = model.y_train_
@@ -80,7 +79,8 @@ log_marginal_likelihood_value = model.log_marginal_likelihood_value_  # 対数�
 fig = plt.figure(figsize=(6, 4))
 ax1 = fig.add_subplot(111)
 for i in range(k_samples.shape[1]):
-    ax1.plot(_x, k_samples[:, i])
+    ax1.plot(train_x, k_samples[:, i])
+ax1.scatter(train_x, train_y, color='darkorange', label='training data', zorder=3)
 ax1.plot(x, y_pred, color='b', label='predict mean', zorder=2)
 ax1.fill_between(x, y_pred+y_std, y_pred-y_std, facecolor='b', alpha=0.3, zorder=1)
 ax1.legend()
