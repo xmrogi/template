@@ -1,26 +1,21 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score  # 正解率
-from sklearn.metrics import precision_score  # 精度
-from sklearn.metrics import recall_score  # 検出率
-from sklearn.metrics import f1_score  # F値
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
 
 df = pd.read_csv('https://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-white.csv',
                  sep=";",
                  encoding="utf-8"
                  )
-print(df.head())
-
-train_x = df.drop(['quality'], axis=1)
-train_y = df['quality']
+train_x = df.drop(['quality'], axis=1).reset_index(drop=True)
+train_y = df['quality'].reset_index(drop=True)
 (train_x, test_x, train_y, test_y) = train_test_split(train_x, train_y, test_size=0.3)
 
 """
 [パラメーター]                [詳細]
 n_estimators                決定木の個数を指定。計算時間とトレードオフ。
-criterion	                "gini"と"entropy"を指定できる．決定木はこの指標を基準にデータを分割する。
+criterion                   "gini"と"entropy"を指定できる．決定木はこの指標を基準にデータを分割する。
 max_depth                   決定木の深さの最大値を指定。過学習を避けるためにはこれを調節するのが最も重要。
                             None：ノードを分けられるだけ分けるかmin_samples_split未満になるまでノードを構築する。
 min_samples_split           ノードを分割するために必要な最小サンプルサイズ。
@@ -69,35 +64,40 @@ n_classes_                  クラスラベル数
 n_features_                 特徴量数
 n_outputs_                  出力データサイズ
 feature_importances_        特徴量の(不純物ベースの)重要性を出力
-oob_score_                  OBB誤り率
-oob_decision_function_      OBB誤り率の決定関数を出力。
+oob_score_                  OOB誤り率
+oob_decision_function_      OOB誤り率の決定関数を出力。
                             n_estimators が小さい場合、ブートストラップ中にデータを除外できなかった可能性がある。
 
+[Method]
+
 """
-clf = RandomForestClassifier(n_estimators=30,  # int, default=100
-                             criterion="gini",  # {"gini" or "entropy"}, fefault="gini"
-                             max_depth=10,  # int, default=None
-                             min_samples_split=2,  # int or float, default=2
-                             min_samples_leaf=1,  # int float, default=1
-                             min_weight_fraction_leaf=0.0,  # float, default=0.0
-                             max_features="auto",  # {"auto", "sqrt", "log2"}, int or float, default="auto"
-                             max_leaf_nodes=None,  # int, default=None
-                             min_impurity_decrease=0.0,  # float, float=0.0
-                             min_impurity_split=None,  # float, default=None
-                             bootstrap=True,  # bool, default=True
-                             oob_score=False,  # bool, default=False
-                             n_jobs=-1,  # int, default=None
-                             random_state=42,  # int or RandamState, default=None
-                             warm_start=False,  # bool, default=False
-                             class_weight=None,  # {"balanced", ""balanced_subsample}, dict or list of dicts, default=None
-                             ccfp_alpha=0.0,  # non-negative float, default=0.0
-                             max_samples=None,  # int or float, default=None
-                             )
-clf.fit(train_x, train_y)
-
-y_pred = clf.predict(test_x)  #テスト用データの予測
-print('Accuracy: {}'.format(accuracy_score(test_y, y_pred)))
-print('Precision: {}'.format(precision_score(test_y, y_pred, average='micro')))
-print('Recall: {}'.format(recall_score(test_y, y_pred, average='micro')))
-print('F1: {}'.format(f1_score(test_y, y_pred, average='micro')))
-
+model = RandomForestClassifier(n_estimators=30,  # int, default=100
+                               criterion="gini",  # {"gini" or "entropy"}, fefault="gini"
+                               max_depth=10,  # int, default=None
+                               min_samples_split=2,  # int or float, default=2
+                               min_samples_leaf=1,  # int float, default=1
+                               min_weight_fraction_leaf=0.0,  # float, default=0.0
+                               max_features="auto",  # {"auto", "sqrt", "log2"}, int or float, default="auto"
+                               max_leaf_nodes=None,  # int, default=None
+                               min_impurity_decrease=0.0,  # float, float=0.0
+                               min_impurity_split=None,  # float, default=None
+                               bootstrap=True,  # bool, default=True
+                               oob_score=True,  # bool, default=False
+                               n_jobs=-1,  # int, default=None
+                               random_state=42,  # int or RandamState, default=None
+                               warm_start=False,  # bool, default=False
+                               class_weight=None,  # {"balanced", ""balanced_subsample}, dict or list of dicts, default=None
+                               ccp_alpha=0.0,  # non-negative float, default=0.0
+                               max_samples=None,  # int or float, default=None
+                               )
+model.fit(train_x, train_y)
+y_pred = model.predict(test_x)
+obb_score = model.oob_score_  # oob誤り率の取得
+feature_importances = model.feature_importances_  # 特徴量重要度の取得
+classes = model.classes_  # クラスラベルのリスト
+prob = model.predict_proba(test_x)  # 各クラスの予測確率(n_samples, n_classes)、classes_の順番に対応している
+params = model.get_params()  # 設定パラメータの取得(辞書)
+print(f'Accuracy: {accuracy_score(test_y, y_pred)}')
+print(f'Precision: {precision_score(test_y, y_pred, average="micro")}')
+print(f'Recall: {recall_score(test_y, y_pred, average="micro")}')
+print(f'F1: {f1_score(test_y, y_pred, average="micro")}')
