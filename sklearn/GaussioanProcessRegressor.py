@@ -62,6 +62,7 @@ model = GaussianProcessRegressor(kernel=kern,  # kernel instance, default=None
                                  )
 model.fit(train_x, train_y)
 y_pred, y_std = model.predict(x.reshape(-1, 1), return_std=True)
+# y_pred, y_std = model.predict(x.reshape(-1, 1), return_std=True)
 log_marginal_likelihood = model.log_marginal_likelihood()  # 対数周辺尤度
 params = model.get_params()  # 設定パラメータの取得(辞書)
 scores = model.score(train_x, train_y)  # 決定係数R^2
